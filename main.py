@@ -43,7 +43,7 @@ def find_wholesalers(identifier, api_key):
     results = shopping_search(identifier, api_key)
     if results is None: # change
         return []
-        # Choose the highest relevance result
+
     best = results[0]
     pid = best.get("product_id")
     # 2. Detailed seller fetch

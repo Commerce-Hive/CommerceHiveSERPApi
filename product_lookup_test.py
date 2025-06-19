@@ -18,7 +18,6 @@ class TestApiCalls(unittest.TestCase):
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = product_data
 
-        # Call the function with the mock data
         products = get_top_products(self.search_term)
 
         # Check the function behavior
@@ -27,7 +26,7 @@ class TestApiCalls(unittest.TestCase):
         self.assertEqual(products[0]['asin'], '1234')
         self.assertEqual(products[0]['price'], '10.00')
 
-    @patch('builtins.print')  # Replace 'your_module' with 'builtins' for mocking print
+    @patch('builtins.print')
     def test_show_products(self, mock_print):
         products = [
             {'title': 'Product 1', 'asin': '1234', 'price': '10.00'},

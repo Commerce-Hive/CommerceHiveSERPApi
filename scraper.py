@@ -6,11 +6,13 @@ import time
 SERPAPI_API_KEY = "93f92def6771bede4c8f3b29b7a898e21bf2289ec589dc8ba905f760230a4c62"
 print("API Key:", SERPAPI_API_KEY)
 
+
 def search_google(keyword, max_results=10):
-    """Search Google via SerpAPI and return organic result URLs."""
+    """Search Google for retailer-specific results."""
+    # Search for products on major retailer sites
     params = {
         "engine": "google",
-        "q": keyword,
+        "q": f"{keyword} site:amazon.com OR site:walmart.com OR site:bestbuy.com OR site:target.com OR site:ebay.com OR site:newegg.com",
         "hl": "en",
         "gl": "us",
         "api_key": SERPAPI_API_KEY,
@@ -25,10 +27,14 @@ def search_google(keyword, max_results=10):
     products = []
 
     for item in organic_results[:max_results]:
+        url = item.get("link")
+        store = urlparse(url).netloc.replace("www.", "") if url else "unknown"
+
         products.append({
             "title": item.get("title"),
-            "product_url": item.get("link"),
-            "store": urlparse(item.get("link", "")).netloc.replace("www.", "")
+            "product_url": url,
+            "store": store,
+            "price": "Check site"
         })
 
     return products

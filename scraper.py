@@ -6,15 +6,17 @@ import time
 SERPAPI_API_KEY = "93f92def6771bede4c8f3b29b7a898e21bf2289ec589dc8ba905f760230a4c62"
 print("API Key:", SERPAPI_API_KEY)
 
+
 def search_google(keyword, max_results=10):
-    """Search Google via SerpAPI and return organic result URLs."""
+    """Search Google for specific product pages on major retailer sites."""
+    # Search for actual product pages with correct URL patterns for any product
     params = {
         "engine": "google",
-        "q": keyword,
+        "q": f'"{keyword}" (site:amazon.com/dp/ OR site:walmart.com/ip/ OR site:bestbuy.com/site/ OR site:target.com/p/ OR site:ebay.com/itm/ OR site:newegg.com/p/)',
         "hl": "en",
         "gl": "us",
         "api_key": SERPAPI_API_KEY,
-        "num": max_results
+        "num": max_results * 2  # Get more results to filter
     }
 
     response = requests.get("https://serpapi.com/search", params=params)
@@ -24,12 +26,87 @@ def search_google(keyword, max_results=10):
     organic_results = data.get("organic_results", [])
     products = []
 
-    for item in organic_results[:max_results]:
-        products.append({
-            "title": item.get("title"),
-            "product_url": item.get("link"),
-            "store": urlparse(item.get("link", "")).netloc.replace("www.", "")
-        })
+    # Filter for actual product pages with specific URL patterns
+    for item in organic_results:
+        url = item.get("link", "")
+
+        # Check if it's actually a product page based on URL patterns
+        is_product_page = any([
+            "/dp/" in url and "amazon.com" in url,
+            "/ip/" in url and "walmart.com" in url,
+            "/site/" in url and "bestbuy.com" in url and ".p?" in url,  # Best Buy product pages end with .p?
+            "/p/" in url and "target.com" in url and "/A-" in url,  # Target format: /p/product-name/-/A-12345
+            "/itm/" in url and "ebay.com" in url,
+            "/p/" in url and "newegg.com" in url,
+        ])
+
+        # Exclude category pages, search pages, and guides
+        is_excluded = any([
+            "/c/" in url,  # category pages
+            "/cp/" in url,  # category pages
+            "/buying-guides/" in url,
+            "/abcat" in url,  # Best Buy category pages
+            "/pcmcat" in url,  # Best Buy category pages
+            "/s?" in url,  # Amazon search results pages
+            "searchpage.jsp" in url,  # Best Buy search pages
+            "/shop/" in url,  # generic shop pages
+            "/brand/" in url,  # brand pages
+            "/compare/" in url,  # comparison pages
+        ])
+
+        if is_product_page and not is_excluded and len(products) < max_results:
+            store = urlparse(url).netloc.replace("www.", "") if url else "unknown"
+
+            products.append({
+                "title": item.get("title"),
+                "product_url": url,
+                "store": store,
+                "price": "Check site"
+            })
+
+    # If we still don't have enough specific product results, do a more targeted search
+    if len(products) < max_results // 2:
+        # Try searching for products with purchase intent keywords
+        broader_params = {
+            "engine": "google",
+            "q": f'{keyword} ("buy now" OR "price" OR "add to cart") (site:amazon.com OR site:walmart.com OR site:bestbuy.com OR site:target.com OR site:ebay.com OR site:newegg.com)',
+            "hl": "en",
+            "gl": "us",
+            "api_key": SERPAPI_API_KEY,
+            "num": max_results
+        }
+
+        broader_response = requests.get("https://serpapi.com/search", params=broader_params)
+        broader_response.raise_for_status()
+        broader_data = broader_response.json()
+
+        for item in broader_data.get("organic_results", []):
+            if len(products) >= max_results:
+                break
+
+            url = item.get("link", "")
+            store = urlparse(url).netloc.replace("www.", "") if url else "unknown"
+
+            # Skip excluded pages and duplicates
+            is_excluded = any([
+                "/c/" in url, "/cp/" in url, "/buying-guides/" in url, "/abcat" in url,
+                "/pcmcat" in url, "/s?" in url, "searchpage.jsp" in url, "/shop/" in url,
+                "/brand/" in url, "/compare/" in url
+            ])
+
+            if is_excluded:
+                continue
+
+            # Skip if we already have this exact URL
+            if any(p['product_url'] == url for p in products):
+                continue
+
+            products.append({
+                "title": item.get("title"),
+                "product_url": url,
+                "store": store,
+                "price": "Check site"
+            })
 
     return products
 

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 # Load API key from .env file
 load_dotenv()
 API_KEY = os.getenv("RAINFOREST_API_KEY")
+print("API Key:", API_KEY)
 
 RAINFOREST_ENDPOINT = "https://api.rainforestapi.com/request"
 
@@ -42,6 +43,7 @@ def show_products(products):
     print()
 
 
+
 def main():
     user_input = input("Enter a product category or keyword (e.g., shoes, headphones): ").strip()
 
@@ -57,7 +59,7 @@ def main():
     # Next step hand-off: get user selection
     try:
         choice = int(input("Enter the number of the product to use for wholesale lookup: "))
-        selected = products[choice - 1]
+        selected = products[choice - 1]    
         print(f"\nYou selected: {selected['title']} (ASIN: {selected['asin']})")
         # Pass `selected['title']` to next step (SERP API team)
     except (ValueError, IndexError):

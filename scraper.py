@@ -4,7 +4,10 @@ from rapidfuzz import fuzz, process
 SERP_API_KEY = "93f92def6771bede4c8f3b29b7a898e21bf2289ec589dc8ba905f760230a4c62"
 
 def search_wholesalers(product_title, max_results=10):
-    query = f"{product_title} site:alibaba.com OR site:dhgate.com OR site:globalsources.com"
+    query = (
+        f"{product_title} site:alibaba.com OR site:dhgate.com OR site:globalsources.com "
+        f"OR site:walmart.com OR site:target.com OR site:ebay.com"
+    )
 
     params = {
         "engine": "google",

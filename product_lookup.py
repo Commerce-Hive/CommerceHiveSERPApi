@@ -42,6 +42,21 @@ def show_products(products):
     print()
 
 
+def find_wholesale_options(selected_product):
+    """Find wholesale options for selected Amazon product"""
+    from main import find_wholesalers
+
+    # Use the product title to search for wholesale options
+    product_title = selected_product.get('title', '')
+
+    # You'll need your SerpAPI key here
+    api_key = "a6bba81b5814f2a6fc49588dd371650e90dbb9033fa8397802c414cd7582bedb"
+
+    results = find_wholesalers(product_title, api_key, include_dhgate=True)
+    return results
+
+
+
 def main():
     user_input = input("Enter a product category or keyword (e.g., shoes, headphones): ").strip()
 
